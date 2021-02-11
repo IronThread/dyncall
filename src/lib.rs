@@ -2,31 +2,19 @@
 
 //! Crate with the purporse of using more easely and powerfull the functionality of the C library
 //! [`dyncall`](https://www.dyncall.org). Refer to the page for platforms supported.
-//! 
+//!
 //! This library needs [`mercurial`](https://www.mercurial-scm.org),either on the `PATH`
 //! environment variable or in the `MERCURIAL_PATH` one.
 
 extern crate alloc;
 
 use ::{
-    alloc::{
-        alloc::Layout, 
-        format
-    },
+    alloc::{alloc::Layout, format},
     core::{
-        mem::{self, align_of, size_of}, 
-        ptr::{self, NonNull}
+        mem::{self, align_of, size_of},
+        ptr::{self, NonNull},
     },
-    libc::{ 
-        c_char, 
-        c_double, 
-        c_float, 
-        c_int, 
-        c_long, 
-        c_longlong, 
-        c_short,
-        c_void
-    },
+    libc::{c_char, c_double, c_float, c_int, c_long, c_longlong, c_short, c_void},
 };
 
 // most items imported here are included things from the dyncall repository comments are made in
@@ -207,7 +195,7 @@ impl Type {
             Struct(x) => x.align(),
         }
     }
-    
+
     /// The size of the type.
     pub fn size(&self) -> usize {
         use Type::*;
@@ -249,7 +237,7 @@ impl Type {
     }
 }
 
-/// A dynamically declared structure,like the ones declared with the [`struct`] keyword.
+/// A dynamically declared structure,like the ones declared with the [`struct`](https://doc.rust-lang.org/std/keyword.struct.html) keyword.
 #[repr(transparent)]
 pub struct Struct(NonNull<c_void>);
 
@@ -261,7 +249,11 @@ impl Struct {
 
         // don't ask for the dumb names
         unsafe {
-            let s1 = dcNewStruct(types.len(), types.clone().map(|x| x.align()).max().unwrap_or(1) as _).unwrap();
+            let s1 = dcNewStruct(
+                types.len(),
+                types.clone().map(|x| x.align()).max().unwrap_or(1) as _,
+            )
+            .unwrap();
 
             let s = s1.0.as_ptr();
 
@@ -331,7 +323,11 @@ impl DynCaller {
         // and,as they are dynamically sized,changing the position will require to refactorize
         // all code to do offsetting of `cap` for the fields that are after that would de-optimise
         // slightly the code,so this will probably not change.
-        unsafe { &*vm_ptr.add(vm_size() - size_of::<VecHead>()).cast::<VecHead>() }
+        unsafe {
+            &*vm_ptr
+                .add(vm_size() - size_of::<VecHead>())
+                .cast::<VecHead>()
+        }
     }
 
     /// Reallocates the args size to `new_arg_size`.
@@ -510,7 +506,7 @@ pub unsafe fn call_func<T: ?Sized>(
 
     for e in args_type {
         if let Void = e {
-            continue
+            continue;
         }
 
         let size = e.size();
