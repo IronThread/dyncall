@@ -1,11 +1,15 @@
 use ::std::{
     env,
+    fs,
     io::{prelude::*, stderr},
-    path::{Path, PathBuf},
+    path::PathBuf,
     process::{exit, Command},
 };
 
 fn main() {
+    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let dyncall_path = out_dir.join("dyncall");
+
     let mut command = Command::new(
         env::var("MERCURIAL_PATH")
             .map(PathBuf::from)
@@ -13,10 +17,11 @@ fn main() {
             .join("hg"),
     );
 
-    if Path::new("dyncall").exists() {
-        command.current_dir("./dyncall");
+    if dyncall_path.exists() {
+        command.current_dir(&dyncall_path);
         command.arg("update");
     } else {
+        command.current_dir(&out_dir);
         command.args(&["clone", "https://dyncall.org/pub/dyncall/dyncall/"][..]);
     }
 
@@ -35,7 +40,11 @@ fn main() {
         _ => {}
     }
 
+    let dyncall_ext_path = out_dir.join("dyncall_ext.cpp");
+
+    fs::copy("dyncall_ext.cpp", &dyncall_ext_path).unwrap();
+
     cc::Build::new()
-        .file("dyncall_ext.cpp")
+        .file(&dyncall_ext_path)
         .compile("dyncall_ext");
 }
