@@ -413,7 +413,7 @@ impl DynCaller {
     /// # Panics
     ///
     /// This function panics on debug if the underlying foreign function yields an error,describing
-    /// it thought the message,only one possible at the time of this writing is call it with an
+    /// it thought the message,the only one possible at the time of this writing is call it with an
     /// unsupported mode.
     pub fn abi(&mut self, name: &str) -> bool {
         unsafe {
