@@ -1,23 +1,27 @@
 use ::std::{
+    env,
     io::{prelude::*, stderr},
-    path::Path,
-    process::{exit, Command, Output},
+    path::{Path, PathBuf},
+    process::{exit, Command},
 };
 
 fn main() {
-    let mut command = Command::new("python");
+    let mut command = Command::new(env::var("MERCURIAL_PATH").map(PathBuf::from).unwrap_or_default().join("hg"));
 
-    command.current_dir("./mercurial");
-    command.args(
-        &[
-            "hg",
-            "update"
-        ][..],
-    );
+    if Path::new("dyncall").exists() {
+        command.current_dir("./dyncall");
+        command.arg("update");
+    } else {
+        command.args(
+            &[
+                "clone",
+                "https://dyncall.org/pub/dyncall/dyncall/",
+            ][..],
+        );
+    }
 
     let output = command.output().unwrap();
-
-    let handle_err = |output: Output| match output.status.code() {
+match output.status.code() {
         Some(x) if x > 0 => {
             let mut err = stderr();
 
@@ -29,28 +33,7 @@ fn main() {
             exit(x)
         }
         _ => {}
-    };
-
-    handle_err(output);
-
-    let mut command = Command::new("python");
-
-    if Path::new("dyncall").exists() {
-        command.current_dir("./dyncall");
-        command.args(&["../mercurial/hg", "update"][..]);
-    } else {
-        command.args(
-            &[
-                "mercurial/hg",
-                "clone",
-                "https://dyncall.org/pub/dyncall/dyncall/",
-            ][..],
-        );
     }
-
-    let output = command.output().unwrap();
-
-    handle_err(output);
 
     cc::Build::new()
         .file("dyncall_ext.cpp")

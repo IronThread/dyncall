@@ -1,3 +1,0 @@
-[workspace]
-members = ["hg-core", "hg-cpython", "rhg"]
-exclude = ["chg", "hgcli"]
